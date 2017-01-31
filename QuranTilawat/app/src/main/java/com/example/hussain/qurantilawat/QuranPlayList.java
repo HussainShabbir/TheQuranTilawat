@@ -103,7 +103,7 @@ public class QuranPlayList extends AppCompatActivity {
 
             String filename = mp3Files[fileCounter];
 
-            //Below condtion is useless. Not sure from where it is reading the file s01. Once it is found then remove the below condtion
+            //Below condition is useless. Not sure from where it is reading the file s01. Once it is found then remove the below condtion
             if (filename.equals("s01.mp3")) {
                 mediaPlayer.stop();
                 fileCounter = 0;
