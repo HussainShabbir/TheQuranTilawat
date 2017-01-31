@@ -6,6 +6,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textVw"/>
+        android:id="@+id/textVw"
+        android:padding="8dp"/>
 
 </LinearLayout>

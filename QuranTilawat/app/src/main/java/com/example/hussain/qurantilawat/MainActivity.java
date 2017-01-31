@@ -17,15 +17,23 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
         setSupportActionBar(toolbar);
+
         displayList();
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -33,16 +41,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void displayList() {
+
         ListView list = (ListView) findViewById(R.id.quranList);
+
         String[] quranList = new String[] {"First","Second","Third","Fourth"};
+
         final ArrayAdapter <String> adapter = new ArrayAdapter<String>(this,R.layout.rowtable,R.id.textVw,quranList);
+
         list.setAdapter(adapter);
+
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 System.out.print(position);
+
                 Intent intent= new Intent(MainActivity.this, QuranPlayList.class);
+
                 intent.putExtra("s",position);
+
                 startActivity(intent);
             }
         });
