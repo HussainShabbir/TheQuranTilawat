@@ -5,7 +5,9 @@ import android.content.pm.ActivityInfo;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.media.MediaPlayer;
 
 import android.os.Bundle;
@@ -29,6 +31,8 @@ public class QuranPlayList extends AppCompatActivity {
 
     AssetManager assetManager = null;
 
+    ImageView imageView = null;
+
     final QuranGlobalClass globalClass = QuranGlobalClass.getInstance();
 
     @Override
@@ -40,11 +44,12 @@ public class QuranPlayList extends AppCompatActivity {
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-        ImageView imageView = (ImageView)findViewById(R.id.AyatImageView);
+        configureMediaPlayerButton();
 
-        imageView.refreshDrawableState();
+        updateimageAndAssetsFolderPath();
 
     }
+
 
 
     void configureLayout() {
@@ -61,52 +66,18 @@ public class QuranPlayList extends AppCompatActivity {
 
         mp3FileList = String.format("s%d",position);
 
-        //Play button Set up
-        Button playBtn = (Button) findViewById(R.id.PlayButton);
-
-        playBtn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-
-                if (globalClass.mediaPlayer == null) {
-
-                    start();
-
-                }
-
-            }
-        });
-
-        //Pause button Set up
-        Button pauseBtn = getPauseOrResumeButton();
-
-        pauseBtn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-
-                pause();
-            }
-        });
-
-        //Stop button Set up
-        Button stopBtn = (Button) findViewById(R.id.StopButton);
-
-        stopBtn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-
-                stop();
-
-            }
-        });
     }
 
     void loadImagesFromAsset(AssetManager assets, int index) {
 
         try {
+
+            if (imageView == null) {
+
+                imageView = (ImageView) findViewById(R.id.AyatImageView);
+            }
+
+            imageView.setImageDrawable(null);
 
             String imagesFileFormat = String.format("Images/%s",mp3FileList);
 
@@ -117,8 +88,6 @@ public class QuranPlayList extends AppCompatActivity {
                 String imagesFilePath = String.format("%s/%s",imagesFileFormat,imageList[index]);
 
                 InputStream inputStream = assets.open(imagesFilePath);
-
-                ImageView imageView = (ImageView) findViewById(R.id.AyatImageView);
 
                 Drawable drawable = Drawable.createFromStream(inputStream, null);
 
@@ -261,8 +230,6 @@ public class QuranPlayList extends AppCompatActivity {
 
             isBismillahAyat = false;
 
-            ImageView imageView = (ImageView) findViewById(R.id.AyatImageView);
-
             imageView.setImageDrawable(null);
 
         }
@@ -271,7 +238,7 @@ public class QuranPlayList extends AppCompatActivity {
 
     void pause() {
 
-        Button pauseorResumeBtn = getPauseOrResumeButton();
+        Button pauseOrResumeBtn = getPauseOrResumeButton();
 
         if ((globalClass.mediaPlayer != null) && globalClass.mediaPlayer.isPlaying()) {
 
@@ -279,13 +246,17 @@ public class QuranPlayList extends AppCompatActivity {
 
             globalClass.mediaPlayer.pause();
 
-            pauseorResumeBtn.setText(R.string.Mediplayer_Resume_Button);
+            globalClass.isPause = true;
+
+            pauseOrResumeBtn.setText(R.string.Mediplayer_Resume_Button);
 
         } else if (globalClass.mediaPlayer !=null) {
 
             globalClass.mediaPlayer.seekTo(globalClass.pausePostion);
 
-            pauseorResumeBtn.setText(R.string.Mediplayer_Pause_Button);
+            globalClass.isPause = false;
+
+            pauseOrResumeBtn.setText(R.string.Mediplayer_Pause_Button);
 
             globalClass.mediaPlayer.start();
 
@@ -300,6 +271,66 @@ public class QuranPlayList extends AppCompatActivity {
         }
 
         loadImagesFromAsset(assetManager,globalClass.fileCounter);
+    }
+
+
+    void configureMediaPlayerButton() {
+
+        imageView = (ImageView) findViewById(R.id.AyatImageView);
+
+        //Play button Set up
+        Button playBtn = (Button) findViewById(R.id.PlayButton);
+
+        playBtn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+                if (globalClass.mediaPlayer == null) {
+
+                    start();
+
+                }
+
+            }
+        });
+
+        //Pause button Set up
+        Button pauseBtn = getPauseOrResumeButton();
+
+        pauseBtn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+                pause();
+            }
+        });
+
+        if (pauseBtn != null) {
+
+            if (globalClass.isPause == true) {
+
+                pauseBtn.setText(R.string.Mediplayer_Resume_Button);
+
+            } else {
+
+                pauseBtn.setText(R.string.Mediplayer_Pause_Button);
+            }
+        }
+
+        //Stop button Set up
+        Button stopBtn = (Button) findViewById(R.id.StopButton);
+
+        stopBtn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+                stop();
+
+            }
+        });
     }
 
     Button getPauseOrResumeButton() {
