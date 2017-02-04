@@ -1,8 +1,11 @@
 package com.example.hussain.qurantilawat;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 
 import android.os.Bundle;
@@ -10,20 +13,23 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
-
+import android.widget.ImageView;
 
 import java.io.IOException;
-
+import java.io.InputStream;
 
 
 public class QuranPlayList extends AppCompatActivity {
 
     String mp3FileList = null;
 
-    int fileCounter = 0;
+    Boolean isBismillahAyat = false;
 
-    MediaPlayer mediaPlayer = null;
+    AssetManager assetManager = null;
+
+    final QuranGlobalClass globalClass = QuranGlobalClass.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +37,13 @@ public class QuranPlayList extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         configureLayout();
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+        ImageView imageView = (ImageView)findViewById(R.id.AyatImageView);
+
+        imageView.refreshDrawableState();
+
     }
 
 
@@ -56,7 +69,7 @@ public class QuranPlayList extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if (mediaPlayer == null) {
+                if (globalClass.mediaPlayer == null) {
 
                     start();
 
@@ -66,7 +79,7 @@ public class QuranPlayList extends AppCompatActivity {
         });
 
         //Pause button Set up
-        Button pauseBtn = (Button) findViewById(R.id.PauseButton);
+        Button pauseBtn = getPauseOrResumeButton();
 
         pauseBtn.setOnClickListener(new View.OnClickListener() {
 
@@ -91,22 +104,97 @@ public class QuranPlayList extends AppCompatActivity {
         });
     }
 
+    void loadImagesFromAsset(AssetManager assets, int index) {
+
+        try {
+
+            String imagesFileFormat = String.format("Images/%s",mp3FileList);
+
+            String imageList[] = assets.list(imagesFileFormat);
+
+            if (imageList.length > index) {
+
+                String imagesFilePath = String.format("%s/%s",imagesFileFormat,imageList[index]);
+
+                InputStream inputStream = assets.open(imagesFilePath);
+
+                ImageView imageView = (ImageView) findViewById(R.id.AyatImageView);
+
+                Drawable drawable = Drawable.createFromStream(inputStream, null);
+
+                imageView.setImageDrawable(drawable);
+
+            }
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+    }
+
+    void playStartAudioFiles() throws IOException {
+
+        globalClass.mediaPlayer = new MediaPlayer();
+
+        if (assetManager == null) {
+
+            assetManager = getAssets();
+        }
+
+        String mp3Files[] = assetManager.list("startAyat");
+
+        if (mp3Files.length > 1) {
+
+            String filePath = null;
+
+            if (!QuranGlobalClass.getInstance().isStartAyat) {
+
+                filePath = String.format("%s/%s","startAyat",mp3Files[0]);
+
+                globalClass.isStartAyat = true;
+
+            } else if (!isBismillahAyat) {
+
+                filePath = String.format("%s/%s","startAyat",mp3Files[1]);
+
+                isBismillahAyat = true;
+            }
+
+            AssetFileDescriptor afd = getAssets().openFd(filePath);
+
+            globalClass.mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+
+            globalClass.mediaPlayer.prepare();
+
+            globalClass.mediaPlayer.start();
+
+            globalClass.mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+
+                    start();
+                }
+            });
+        }
+    }
+
     void playAudioFile() throws IOException {
 
-        mediaPlayer = new MediaPlayer();
+        globalClass.mediaPlayer = new MediaPlayer();
 
-        AssetManager assetManager = getAssets();
+        updateimageAndAssetsFolderPath();
 
         String mp3Files[] = assetManager.list(mp3FileList);
 
-        if (mp3Files.length > fileCounter) {
+        if (mp3Files.length > globalClass.fileCounter) {
 
-            String filename = mp3Files[fileCounter];
+            String filename = mp3Files[globalClass.fileCounter];
 
             //Below condition is useless. Not sure from where it is reading the file s01. Once it is found then remove the below condtion
             if (filename.equals("s01.mp3")) {
-                mediaPlayer.stop();
-                fileCounter = 0;
+                globalClass.mediaPlayer.stop();
+                globalClass.fileCounter = 0;
                 return;
             }
 
@@ -114,18 +202,18 @@ public class QuranPlayList extends AppCompatActivity {
 
             AssetFileDescriptor afd = getAssets().openFd(filePath);
 
-            mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            globalClass.mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
 
-            mediaPlayer.prepare();
+            globalClass.mediaPlayer.prepare();
 
-            mediaPlayer.start();
+            globalClass.mediaPlayer.start();
 
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            globalClass.mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
                 @Override
                 public void onCompletion(MediaPlayer mp) {
 
-                    fileCounter += 1;
+                    globalClass.fileCounter += 1;
 
                     start();
 
@@ -143,7 +231,15 @@ public class QuranPlayList extends AppCompatActivity {
 
         try {
 
-            playAudioFile();
+            if (!isBismillahAyat) {
+
+                playStartAudioFiles();
+
+            } else {
+
+                playAudioFile();
+
+            }
 
         } catch (IOException e) {
 
@@ -155,13 +251,19 @@ public class QuranPlayList extends AppCompatActivity {
 
     void stop() {
 
-        if ((mediaPlayer != null) && mediaPlayer.isPlaying()) {
+        if (globalClass.mediaPlayer != null) {
 
-            fileCounter = 0;
+            globalClass.mediaPlayer.stop();
 
-            mediaPlayer = null;
+            globalClass.fileCounter = 0;
 
-            mediaPlayer.stop();
+            globalClass.mediaPlayer = null;
+
+            isBismillahAyat = false;
+
+            ImageView imageView = (ImageView) findViewById(R.id.AyatImageView);
+
+            imageView.setImageDrawable(null);
 
         }
     }
@@ -169,11 +271,40 @@ public class QuranPlayList extends AppCompatActivity {
 
     void pause() {
 
-        if ((mediaPlayer != null) && mediaPlayer.isPlaying()) {
+        Button pauseorResumeBtn = getPauseOrResumeButton();
 
-            mediaPlayer.pause();
+        if ((globalClass.mediaPlayer != null) && globalClass.mediaPlayer.isPlaying()) {
+
+            globalClass.pausePostion = globalClass.mediaPlayer.getCurrentPosition();
+
+            globalClass.mediaPlayer.pause();
+
+            pauseorResumeBtn.setText(R.string.Mediplayer_Resume_Button);
+
+        } else if (globalClass.mediaPlayer !=null) {
+
+            globalClass.mediaPlayer.seekTo(globalClass.pausePostion);
+
+            pauseorResumeBtn.setText(R.string.Mediplayer_Pause_Button);
+
+            globalClass.mediaPlayer.start();
 
         }
+
+    }
+
+    void updateimageAndAssetsFolderPath() {
+
+        if (assetManager == null) {
+            assetManager = getAssets();
+        }
+
+        loadImagesFromAsset(assetManager,globalClass.fileCounter);
+    }
+
+    Button getPauseOrResumeButton() {
+
+        return (Button) findViewById(R.id.PauseButton);
     }
 
 

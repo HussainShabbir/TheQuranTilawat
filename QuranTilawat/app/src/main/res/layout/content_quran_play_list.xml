@@ -13,14 +13,17 @@
     tools:context="com.example.hussain.qurantilawat.QuranPlayList"
     tools:showIn="@layout/activity_quran_play_list">
     <ImageView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/AyatImage"/>
+        android:layout_centerInParent="true"
+        android:id="@+id/AyatImageView"/>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/PlayButton"
         android:layout_alignParentBottom="true"
+        android:background="@color/colorPrimaryDark"
+        android:textColor="@color/colorWhite"
         android:text="play"
         />
     <Button
@@ -28,14 +31,18 @@
         android:layout_height="wrap_content"
         android:id="@+id/PauseButton"
         android:layout_alignParentBottom="true"
-        android:layout_toRightOf="@+id/PlayButton"
+        android:layout_centerInParent="true"
+        android:background="@color/colorPrimaryDark"
+        android:textColor="@color/colorWhite"
         android:text="pause"/>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/StopButton"
         android:layout_alignParentBottom="true"
-        android:layout_toRightOf="@+id/PauseButton"
+        android:layout_alignParentRight="true"
+        android:background="@color/colorPrimaryDark"
+        android:textColor="@color/colorWhite"
         android:text="Stop"/>
 
 </RelativeLayout>
