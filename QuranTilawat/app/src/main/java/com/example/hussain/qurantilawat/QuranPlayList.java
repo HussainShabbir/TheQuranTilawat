@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetManager;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -35,6 +37,7 @@ public class QuranPlayList extends AppCompatActivity implements MediaPlayerListe
 
         configureLayout();
 
+
     }
 
 
@@ -58,9 +61,28 @@ public class QuranPlayList extends AppCompatActivity implements MediaPlayerListe
         mediaPlayer.updateMediaPlayerListener(this);
 
         configureMediaPlayerButton();
+
+        if (mediaPlayer.assetManager != null && mediaPlayer.mediaPlayer != null) {
+
+            updateImage(mediaPlayer.assetManager, mediaPlayer.fileCounter);
+
+        }
+
+        displayTitle((mediaPlayer.selectedSurat != null && mediaPlayer.mediaPlayer != null) ? mediaPlayer.selectedSurat : "Surat");
+
+        showBackButtonArrow();
+
     }
 
 
+    void showBackButtonArrow() {
+
+        ActionBar actionBar = getSupportActionBar();
+
+        actionBar.setHomeButtonEnabled(true);
+
+        actionBar.setDisplayHomeAsUpEnabled(true);
+    }
 
 
     void configureMediaPlayerButton() {
@@ -77,9 +99,15 @@ public class QuranPlayList extends AppCompatActivity implements MediaPlayerListe
 
                 if (mediaPlayer.mediaPlayer == null) {
 
-                    mediaPlayer.updateMp3FolderName(String.format("s%d",intent.getExtras().getInt("s")));
+                    int position = intent.getExtras().getInt("s");
+
+                    mediaPlayer.updateMp3FolderName(String.format("s%d",position));
 
                     mediaPlayer.play();
+
+                   mediaPlayer.updateTitle(intent.getExtras().getString("suratName"));
+
+                    displayTitle(mediaPlayer.selectedSurat);
 
                 }
             }
@@ -164,5 +192,18 @@ public class QuranPlayList extends AppCompatActivity implements MediaPlayerListe
 
             pauseOrResumeBtn.setText(R.string.Mediplayer_Pause_Button);
         }
+    }
+
+    @Override
+    public boolean onSupportNavigateUp(){
+        finish();
+        return true;
+    }
+
+
+    void displayTitle(String suratName) {
+
+        setTitle(suratName);
+
     }
 }

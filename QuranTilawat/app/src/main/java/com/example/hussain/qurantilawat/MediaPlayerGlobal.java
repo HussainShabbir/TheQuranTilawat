@@ -32,6 +32,8 @@ public class MediaPlayerGlobal {
 
     int fileCounter = 0;
 
+    String selectedSurat = null;
+
     String mp3FilesFolderName = null;
 
     AssetManager assetManager = null;
@@ -212,5 +214,21 @@ public class MediaPlayerGlobal {
     void updateMediaPlayerListener(QuranPlayList listener) {
 
         mediaPlayerListener = listener;
+    }
+
+
+    void updateTitle(String suratName) {
+
+        if (suratName != null) {
+
+            String suratCharList[] = suratName.split(". ");
+
+            if (suratCharList.length > 1) {
+
+                selectedSurat = String.format("Surat %s",suratCharList[2]);
+
+            }
+
+        }
     }
 }
